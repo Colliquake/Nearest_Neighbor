@@ -2,10 +2,51 @@
 #include <fstream>
 #include <vector>
 #include <cmath>
+#include <ctime>
+#include <iomanip>
+
+void print_features(std::vector<int> feats){
+    std::cout<< "{";
+    for(int i= 0; i< feats.size()- 1; i++){
+        std::cout<< feats.at(i);
+        if(i!= feats.size()- 1){
+            std::cout<< ", ";
+        }
+    }
+    std::cout<< feats.at(feats.size()- 1)<< "}";
+}
+
+float calc_default(std::vector<std::vector<float>> data){
+    float class1= 0;
+    float class2= 0;
+    for(int i= 0; i< data.size(); i++){
+        if(data.at(i).at(0)== 1.00){
+            class1+= 1.00;
+        }
+        else{
+            class2+= 1.00;
+        }
+    }
+    if(class1> class2){
+        return 100* class1/ (class1+ class2);
+    }
+    return 100* class2/ (class1+ class2);
+}
+
+void print_features(std::vector<int> feats, int feature){
+    std::cout<< "{";
+    for(int i= 0; i< feats.size(); i++){
+        std::cout<< feats.at(i);
+        if(i!= feats.size()){
+            std::cout<< ", ";
+        }
+    }
+    std::cout<< feature<< "}";
+}
 
 std::vector<std::vector<float>> InpData(const int numInstances, const int numFeats){
     std::vector<std::vector<float>> retListOfLists;
-    std::ifstream myfile("C:\\Users\\alexr\\CLionProjects\\FeatureSelection_NearestNeighbor\\CS170_small_special_testdata__95.txt");
+    std::ifstream myfile("C:\\Users\\alexr\\CLionProjects\\FeatureSelection_NearestNeighbor\\CS170_SMALLtestdata__10.txt");
     std::vector<float> numList;
     float num;
 
@@ -75,6 +116,7 @@ float calc_acc(std::vector<std::vector<float>> data, std::vector<int> features_t
 }
 
 int main() {
+    std::cout<< "Note: Please confirm that you have included the correct file path (in the code)\n";
     int numInstances;    //usually 300
     int numFeats;        //usually 10
     std::cout<< "How many instances are there?";
@@ -92,30 +134,67 @@ int main() {
     int feat_to_add;
     std::vector<int> curr_feats;
     std::vector<int> test_feats;
+    std::vector<int> best_feats;
     int feat_to_check;
+    std::vector<std::vector<int>> best_of_best;
+    std::vector<float> total_accs;
+    int bestAccLoc;
+    float tempAcc;
 
-    for(int i= 0; i< numFeats; i++){
-        level= i+ 1;
-        std::cout<< "On level "<< level<< " of the search tree\n";
-        for(int j= 0; j< numFeats; j++){
-            feat_to_check= j+ 1;
-            if(!intIsInFeats(curr_feats, feat_to_check)) {
+    int which_algorithm;
+    std::cout<< "Select algorithm to run:\n";
+    std::cout<< "\t 1. Forward Selection\n";
+    std::cout<< "\t 2. Backward Elimination\n";
+    std::cin>> which_algorithm;
+
+    if(which_algorithm== 1) {           //runs forward selection
+        clock_t start, end;
+        start= clock();
+        std::cout<< "Default rate: "<< calc_default(ListOfLists)<< "%\n";
+        for (int i = 0; i < numFeats; i++) {
+            level = i + 1;
+            std::cout << "On level " << level << " of the search tree\n";
+            for (int j = 0; j < numFeats; j++) {
+                feat_to_check = j + 1;
+                if (!intIsInFeats(curr_feats, feat_to_check)) {
 //                std::cout << "--Considering adding feature " << feat_to_check;
-                std::cout << "--Considering adding feature " << feat_to_check;
-                test_feats = curr_feats;
-                test_feats.push_back(feat_to_check);
-                curr_acc = calc_acc(ListOfLists, test_feats);
-                std::cout<< " with accuracy of "<< curr_acc<< "%\n";
+                    std::cout << "--Considering using feature(s) "; print_features(curr_feats, feat_to_check);
+                    test_feats = curr_feats;
+                    test_feats.push_back(feat_to_check);
+                    curr_acc = calc_acc(ListOfLists, test_feats);
+                    std::cout << " with an accuracy of " << curr_acc << "%\n";
 
-                if (curr_acc > best_acc_yet) {
-                    best_acc_yet = curr_acc;
-                    feat_to_add = feat_to_check;
+                    if (curr_acc > best_acc_yet) {
+                        best_acc_yet = curr_acc;
+                        feat_to_add = feat_to_check;
+                        best_feats= test_feats;
+                    }
                 }
             }
+            tempAcc= calc_acc(ListOfLists, best_feats);
+            std::cout << "For level " << level << ", using feature(s) "; print_features(curr_feats, feat_to_add); std::cout<< " was best with an accuracy of "<< tempAcc<< "%\n\n";
+            curr_feats.push_back(feat_to_add);
+            best_of_best.push_back(curr_feats);
+            total_accs.push_back(tempAcc);
+            best_acc_yet = -1.0;
         }
-        curr_feats.push_back(feat_to_add);
-        std::cout<< "For level "<< level<< ", feature "<< feat_to_add<< " was added to current set\n";
-        best_acc_yet= -1.0;
+        bestAccLoc= 0;
+        tempAcc= total_accs.at(0);
+        for(int i= 0; i< total_accs.size(); i++){
+            if(total_accs.at(i)> tempAcc){
+                bestAccLoc= i;
+                tempAcc= total_accs.at(i);
+            }
+        }
+        end= clock();
+        double tot_time= double(end- start)/ double(CLOCKS_PER_SEC);
+        tot_time= tot_time/ 60.0;       //convert to minutes
+
+        std::cout<< "\nDone! The best feature subset is "; print_features(best_of_best.at(bestAccLoc)); std::cout<< " with an accuracy of "<< total_accs.at(bestAccLoc)<< "%\n";
+        std::cout<< "Total execution time is "<< std::fixed<< std::setprecision(6)<< tot_time<< " minutes."<< std::endl;
+    }
+    else{           //runs backward elimination
+
     }
     return 0;
 }
