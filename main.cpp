@@ -1,26 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
-#include <iomanip>
-#include <cstdlib>
-#include <algorithm>
 #include <cmath>
-
-void print_all(const std::vector<std::vector<float>> inp){
-    for(int i= 0; i< inp.size(); i++){
-        std::cout<< "At row "<< i+ 1<< ", the object is in class ";
-        if(inp.at(i).at(0)== 1.000000){
-            std::cout<< "1, and its features have values:"<< std::endl;
-        }
-        else{
-            std::cout<< "2, and its features have values:"<< std::endl;
-        }
-        for(int j= 0; j< 10; j++){
-            std::cout<< inp.at(i).at(j+ 1)<< " ";
-        }
-        std::cout<< std::endl;
-    }
-}
 
 std::vector<std::vector<float>> InpData(const int numInstances, const int numFeats){
     std::vector<std::vector<float>> retListOfLists;
@@ -38,7 +19,6 @@ std::vector<std::vector<float>> InpData(const int numInstances, const int numFea
         }
         retListOfLists.push_back(numList);      //store all the vectors inside a single vector (2-D vector)
     }
-//    print_all(retListOfLists);
     return retListOfLists;
 }
 
@@ -59,7 +39,6 @@ float calc_dist(std::vector<std::vector<float>> data, int compare1, int compare2
         curr*= curr;
         total+= curr;
     }
-//    std::cout<< "Distance from instance "<< compare1+ 1<< " to instance "<< compare2+ 1<< " is "<< sqrt(total)<< std::endl;
     return sqrt(total);
 }
 
@@ -77,20 +56,13 @@ float calc_acc(std::vector<std::vector<float>> data, std::vector<int> features_t
             temp2= j+ 1;
             if(temp2!= temp1) {
                 curr_distance= calc_dist(data, i, j, features_to_check);
-//                std::cout<< "Distance from instance "<< temp1<< " to instance "<< temp2<< " with features {";
-//                for(int k= 0; k< features_to_check.size(); k++){
-//                    std::cout<< features_to_check.at(k)<< " ";
-//                }
-//                std::cout<< "} is: "<< curr_distance<< std::endl;
                 if(curr_distance< curr_neighbor_distance){
                     curr_neighbor_distance= curr_distance;
                     nearest= temp2;
                     nearest_label= data.at(j).at(0);
                 }
-//                std::cout << "Ask if " << temp1 << " is nearest neighbor with " << temp2 << std::endl;
             }
         }
-//        std::cout<< "This makes the nearest neighbor of instance "<< temp1<< " be instance "<< nearest<< " with a distance of: "<< curr_neighbor_distance<< std::endl<< std::endl;
         curr_neighbor_distance= 9999.0;
         if(data.at(i).at(0)== nearest_label){
             num_correct++;
@@ -99,26 +71,20 @@ float calc_acc(std::vector<std::vector<float>> data, std::vector<int> features_t
     }
     num_correct*= 100000.0;
     num_total*= 1000.0;
-//    std::cout<< "num_correct: "<< num_correct<< std::endl;
-//    std::cout<< "num_total: "<< num_total<< std::endl;
     return num_correct/ num_total;
 }
 
 int main() {
-    int numInstances= 300;    //usually 300
-    int numFeats= 10;        //usually 10
+    int numInstances;    //usually 300
+    int numFeats;        //usually 10
+    std::cout<< "How many instances are there?";
+    std::cin>> numInstances;
+    std::cout<< "How many features are there?";
+    std::cin>> numFeats;
+    std::cout<< std::endl;
     std::vector<std::vector<float>> ListOfLists= InpData(numInstances, numFeats);
     float accuracy;
 
-//    std::ofstream myfile;
-//    myfile.open("C:\\Users\\alexr\\CLionProjects\\FeatureSelection_NearestNeighbor\\example.csv");
-//    for(int i= 0; i< ListOfLists.size(); i++){
-//        for(int j= 0; j< numFeats; j++){
-//            myfile<< ListOfLists.at(i).at(j)<< ",";
-//        }
-//        myfile<< ListOfLists.at(i).at(10)<< "\n";
-//    }
-//    myfile.close();
 
     int level;
     float best_acc_yet= -1.0;
@@ -127,11 +93,6 @@ int main() {
     std::vector<int> curr_feats;
     std::vector<int> test_feats;
     int feat_to_check;
-
-//    std::vector<int> testing_feats {7, 4, 6};
-//    curr_acc= calc_acc(ListOfLists, testing_feats);
-//    std::cout<< "Accuracy of features {4, 6, 7} is "<< curr_acc<< "%";
-//    return 0;
 
     for(int i= 0; i< numFeats; i++){
         level= i+ 1;
