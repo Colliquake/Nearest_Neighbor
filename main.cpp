@@ -5,6 +5,18 @@
 #include <ctime>
 #include <iomanip>
 
+std::string get_features(std::vector<int> feats){
+    std::string ret;
+    ret.append("{");
+    for(int i= 0; i< feats.size()- 1; i++){
+        ret.append(std::to_string(feats.at(i)));
+        ret.append(" ");
+    }
+    ret.append(std::to_string(feats.at(feats.size()- 1)));
+    ret.append("}");
+    return ret;
+}
+
 void print_features(std::vector<int> feats){
     std::cout<< "{";
     for(int i= 0; i< feats.size()- 1; i++){
@@ -208,6 +220,15 @@ int main() {
         std::cout << " with an accuracy of " << total_accs.at(bestAccLoc) << "%\n";
         std::cout << "Total execution time is " << std::fixed << std::setprecision(6) << tot_time << " minutes."
                   << std::endl;
+
+
+
+        std::ofstream stats;
+        stats.open("C:\\Users\\alexr\\CLionProjects\\FeatureSelection_NearestNeighbor\\stats.csv");
+        for(int f= 0; f< best_of_best.size(); f++){
+            stats<< get_features(best_of_best.at(f))<< ", "<< std::to_string(total_accs.at(f))<< "\n";
+        }
+        stats.close();
     }
     else {           //runs backward elimination
         clock_t start, end;
@@ -265,6 +286,14 @@ int main() {
         std::cout << " with an accuracy of " << total_accs.at(bestAccLoc) << "%\n";
         std::cout << "Total execution time is " << std::fixed << std::setprecision(6) << tot_time << " minutes."
                   << std::endl;
+
+
+        std::ofstream stats;
+        stats.open("C:\\Users\\alexr\\CLionProjects\\FeatureSelection_NearestNeighbor\\stats.csv");
+        for(int f= 0; f< best_of_best.size(); f++){
+            stats<< get_features(best_of_best.at(f))<< ", "<< std::to_string(total_accs.at(f))<< "\n";
+        }
+        stats.close();
     }
     return 0;
 }
